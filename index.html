@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly To-Do List</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Weekly To-Do List</h1>
+        <input type="text" id="taskInput" placeholder="Add a new task...">
+        <select id="statusInput">
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Complete">Complete</option>
+            <option value="Complete & Checked">Complete & Checked</option>
+        </select>
+        <select id="dayInput">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+        </select>
+        <select id="typeInput">
+            <option value="repeated">Repeated</option>
+            <option value="one-time">One-time</option>
+        </select>
+        <button onclick="addTask()">Add Task</button>
+        <button onclick="saveTasks()">Save Tasks</button>
+        <button onclick="loadTasks()">Load Tasks</button>
+        
+        <div id="taskLists">
+            <h2>Monday</h2>
+            <ul id="taskListMonday"></ul>
+            <h2>Tuesday</h2>
+            <ul id="taskListTuesday"></ul>
+            <h2>Wednesday</h2>
+            <ul id="taskListWednesday"></ul>
+            <h2>Thursday</h2>
+            <ul id="taskListThursday"></ul>
+            <h2>Friday</h2>
+            <ul id="taskListFriday"></ul>
+            <h2>Saturday</h2>
+            <ul id="taskListSaturday"></ul>
+            <h2>Sunday</h2>
+            <ul id="taskListSunday"></ul>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
