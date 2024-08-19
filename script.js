@@ -8,17 +8,23 @@ function addTask(task = null) {
     const statusInput = document.getElementById('statusInput');
     const dayInput = document.getElementById('dayInput');
     const typeInput = document.getElementById('typeInput');
+    const startTimeInput = document.getElementById('startTimeInput');
+    const endTimeInput = document.getElementById('endTimeInput');
+    const estimatedTimeInput = document.getElementById('estimatedTimeInput');
     
     const taskText = task ? task.text : taskInput.value.trim();
     const taskStatus = task ? task.status : statusInput.value;
     const taskDay = task ? task.day : dayInput.value;
     const taskType = task ? task.type : typeInput.value;
+    const taskStartTime = task ? task.startTime : startTimeInput.value;
+    const taskEndTime = task ? task.endTime : endTimeInput.value;
+    const taskEstimatedTime = task ? task.estimatedTime : estimatedTimeInput.value;
 
     if (taskText !== '') {
         const li = document.createElement('li');
 
         const taskName = document.createElement('span');
-        taskName.textContent = taskText;
+        taskName.textContent = `${taskText} (Start: ${taskStartTime}, End: ${taskEndTime}, Est. ${taskEstimatedTime} hrs)`;
 
         const taskStatusSpan = document.createElement('span');
         taskStatusSpan.textContent = taskStatus;
@@ -35,29 +41,18 @@ function addTask(task = null) {
             this.parentElement.remove();
         };
 
+        const subtaskBtn = document.createElement('button');
+        subtaskBtn.textContent = 'Add Subtask';
+        subtaskBtn.className = 'subtask-btn';
+        subtaskBtn.onclick = function() {
+            addSubtask(this.parentElement);
+        };
+
         li.appendChild(taskName);
         li.appendChild(taskStatusSpan);
         li.appendChild(taskTypeSpan);
+        li.appendChild(subtaskBtn);
         li.appendChild(deleteBtn);
-
-        li.onclick = function() {
-            let newStatus;
-            switch (taskStatusSpan.textContent) {
-                case 'Not Started':
-                    newStatus = 'In Progress';
-                    break;
-                case 'In Progress':
-                    newStatus = 'Complete';
-                    break;
-                case 'Complete':
-                    newStatus = 'Complete & Checked';
-                    break;
-                case 'Complete & Checked':
-                    newStatus = 'Not Started';
-                    break;
-            }
-            taskStatusSpan.textContent = newStatus;
-        };
 
         document.getElementById('taskList' + taskDay).appendChild(li);
 
@@ -66,7 +61,34 @@ function addTask(task = null) {
             statusInput.value = 'Not Started';
             dayInput.value = 'Monday';
             typeInput.value = 'repeated';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+            estimatedTimeInput.value = '';
         }
+    }
+}
+
+function addSubtask(taskElement) {
+    const subtaskText = prompt('Enter subtask:');
+    if (subtaskText) {
+        const subtask = document.createElement('li');
+        subtask.style.marginLeft = '20px';
+        subtask.textContent = subtaskText;
+        
+        const subtaskStatusSpan = document.createElement('span');
+        subtaskStatusSpan.textContent = 'Not Started';
+        subtaskStatusSpan.className = 'status';
+        subtask.appendChild(subtaskStatusSpan);
+
+        const deleteSubtaskBtn = document.createElement('button');
+        deleteSubtaskBtn.textContent = 'Delete Subtask';
+        deleteSubtaskBtn.className = 'delete-btn';
+        deleteSubtaskBtn.onclick = function() {
+            this.parentElement.remove();
+        };
+
+        subtask.appendChild(deleteSubtaskBtn);
+        taskElement.appendChild(subtask);
     }
 }
 
@@ -82,7 +104,10 @@ function saveTasks() {
                 text: li.firstChild.textContent,
                 status: li.querySelector('.status').textContent,
                 type: li.querySelector('.type').textContent,
-                day: day
+                day: day,
+                startTime: li.firstChild.textContent.match(/Start: (.*?),/)[1],
+                endTime: li.firstChild.textContent.match(/End: (.*?),/)[1],
+                estimatedTime: li.firstChild.textContent.match(/Est. (.*?) hrs/)[1]
             };
             tasks.push(task);
         });
@@ -124,19 +149,16 @@ function checkReset() {
     const lastResetDate = localStorage.getItem('lastResetDate');
     const currentDate = new Date();
     
-    // If there was a reset before, check if it's time to reset again
     if (lastResetDate) {
         const lastReset = new Date(lastResetDate);
         const nextReset = new Date(lastReset);
-        nextReset.setDate(lastReset.getDate() + 7); // Set to 7 days after the last reset
+        nextReset.setDate(lastReset.getDate() + 7);
         
-        // Check if today is after the last reset and it's Sunday
         if (currentDate > nextReset && currentDate.getDay() === 0) {
             resetTasks();
             localStorage.setItem('lastResetDate', currentDate.toISOString());
         }
     } else {
-        // If there was no previous reset, set the reset date to the current date
         localStorage.setItem('lastResetDate', currentDate.toISOString());
     }
 }

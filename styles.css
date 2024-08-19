@@ -49,6 +49,15 @@ li {
     text-align: center;
 }
 
+.subtask-btn {
+    background: blue;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
 .delete-btn {
     background: red;
     color: white;
@@ -57,7 +66,7 @@ li {
     cursor: pointer;
 }
 
-input[type="text"], select {
+input[type="text"], select, input[type="datetime-local"], input[type="number"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
