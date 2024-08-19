@@ -24,7 +24,7 @@ function addTask(task = null) {
         const li = document.createElement('li');
 
         const taskName = document.createElement('span');
-        taskName.textContent = `${taskText} (Start: ${taskStartTime}, End: ${taskEndTime}, Est. ${taskEstimatedTime} hrs)`;
+        taskName.textContent = `${taskText} ${formatTaskDetails(taskStartTime, taskEndTime, taskEstimatedTime)}`;
 
         const taskStatusSpan = document.createElement('span');
         taskStatusSpan.textContent = taskStatus;
@@ -73,7 +73,13 @@ function addTask(task = null) {
             endTimeInput.value = '';
             estimatedTimeInput.value = '';
         }
+
+        return li; // Return the list item to add subtasks later if needed
     }
+}
+
+function formatTaskDetails(startTime, endTime, estimatedTime) {
+    return `(Start: ${startTime || 'Not Set'}, End: ${endTime || 'Not Set'}, Est. ${estimatedTime || 'Not Set'} hrs)`;
 }
 
 function updateStatus(taskStatusSpan) {
@@ -145,9 +151,9 @@ function saveTasks() {
                 status: li.querySelector('.status').textContent,
                 type: li.querySelector('.type').textContent,
                 day: day,
-                startTime: li.firstChild.textContent.match(/Start: (.*?),/)[1],
-                endTime: li.firstChild.textContent.match(/End: (.*?),/)[1],
-                estimatedTime: li.firstChild.textContent.match(/Est. (.*?) hrs/)[1],
+                startTime: li.firstChild.textContent.match(/Start: (.*?),/)[1] !== 'Not Set' ? li.firstChild.textContent.match(/Start: (.*?),/)[1] : '',
+                endTime: li.firstChild.textContent.match(/End: (.*?),/)[1] !== 'Not Set' ? li.firstChild.textContent.match(/End: (.*?),/)[1] : '',
+                estimatedTime: li.firstChild.textContent.match(/Est. (.*?) hrs/)[1] !== 'Not Set' ? li.firstChild.textContent.match(/Est. (.*?) hrs/)[1] : '',
                 subtasks: []
             };
 

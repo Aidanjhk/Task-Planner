@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Planner</title>
+    <title>Month Planner</title>
+    <link rel="stylesheet" href="shared.css">
 </head>
 <body>
-    <h1>Welcome to Task Planner</h1>
     <nav>
         <a href="day.html">Day</a> | 
         <a href="week.html">Week</a> | 
         <a href="month.html">Month</a> | 
         <a href="add-task.html">Add Task</a>
     </nav>
+    <div class="container">
+        <h1>Month Planner</h1>
+        <ul id="taskList" class="task-list"></ul>
+    </div>
+    <script src="shared.js"></script>
+    <script src="month.js"></script>
 </body>
 </html>

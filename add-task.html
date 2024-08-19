@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Task</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Add Task</h1>
+        <input type="text" id="taskInput" placeholder="Task description">
+        <input type="date" id="startDateInput" placeholder="Start date">
+        <input type="date" id="endDateInput" placeholder="End date">
+        <button onclick="createTask()">Create Task</button>
+        <button onclick="window.location.href='day.html'">Cancel</button>
+    </div>
+    <script src="shared.js"></script>
+    <script src="task-form.js"></script>
+</body>
+</html>
