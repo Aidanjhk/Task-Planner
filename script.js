@@ -34,6 +34,13 @@ function addTask(task = null) {
         taskTypeSpan.textContent = taskType;
         taskTypeSpan.className = 'type';
 
+        const statusBtn = document.createElement('button');
+        statusBtn.textContent = 'Update Status';
+        statusBtn.className = 'status-btn';
+        statusBtn.onclick = function() {
+            updateStatus(taskStatusSpan);
+        };
+
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
         deleteBtn.className = 'delete-btn';
@@ -51,6 +58,7 @@ function addTask(task = null) {
         li.appendChild(taskName);
         li.appendChild(taskStatusSpan);
         li.appendChild(taskTypeSpan);
+        li.appendChild(statusBtn);
         li.appendChild(subtaskBtn);
         li.appendChild(deleteBtn);
 
@@ -68,17 +76,45 @@ function addTask(task = null) {
     }
 }
 
+function updateStatus(taskStatusSpan) {
+    let newStatus;
+    switch (taskStatusSpan.textContent) {
+        case 'Not Started':
+            newStatus = 'In Progress';
+            break;
+        case 'In Progress':
+            newStatus = 'Complete';
+            break;
+        case 'Complete':
+            newStatus = 'Complete & Checked';
+            break;
+        case 'Complete & Checked':
+            newStatus = 'Not Started';
+            break;
+    }
+    taskStatusSpan.textContent = newStatus;
+}
+
 function addSubtask(taskElement) {
     const subtaskText = prompt('Enter subtask:');
     if (subtaskText) {
-        const subtask = document.createElement('li');
-        subtask.style.marginLeft = '20px';
-        subtask.textContent = subtaskText;
-        
+        const subtaskLi = document.createElement('li');
+        subtaskLi.style.marginLeft = '20px';
+        subtaskLi.className = 'subtask';
+
+        const subtaskName = document.createElement('span');
+        subtaskName.textContent = subtaskText;
+
         const subtaskStatusSpan = document.createElement('span');
         subtaskStatusSpan.textContent = 'Not Started';
         subtaskStatusSpan.className = 'status';
-        subtask.appendChild(subtaskStatusSpan);
+
+        const subtaskStatusBtn = document.createElement('button');
+        subtaskStatusBtn.textContent = 'Update Status';
+        subtaskStatusBtn.className = 'status-btn';
+        subtaskStatusBtn.onclick = function() {
+            updateStatus(subtaskStatusSpan);
+        };
 
         const deleteSubtaskBtn = document.createElement('button');
         deleteSubtaskBtn.textContent = 'Delete Subtask';
@@ -87,8 +123,12 @@ function addSubtask(taskElement) {
             this.parentElement.remove();
         };
 
-        subtask.appendChild(deleteSubtaskBtn);
-        taskElement.appendChild(subtask);
+        subtaskLi.appendChild(subtaskName);
+        subtaskLi.appendChild(subtaskStatusSpan);
+        subtaskLi.appendChild(subtaskStatusBtn);
+        subtaskLi.appendChild(deleteSubtaskBtn);
+
+        taskElement.appendChild(subtaskLi);
     }
 }
 
@@ -97,7 +137,7 @@ function saveTasks() {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
     days.forEach(day => {
-        const taskItems = document.querySelectorAll('#taskList' + day + ' li');
+        const taskItems = document.querySelectorAll('#taskList' + day + ' > li');
 
         taskItems.forEach(li => {
             const task = {
@@ -107,8 +147,19 @@ function saveTasks() {
                 day: day,
                 startTime: li.firstChild.textContent.match(/Start: (.*?),/)[1],
                 endTime: li.firstChild.textContent.match(/End: (.*?),/)[1],
-                estimatedTime: li.firstChild.textContent.match(/Est. (.*?) hrs/)[1]
+                estimatedTime: li.firstChild.textContent.match(/Est. (.*?) hrs/)[1],
+                subtasks: []
             };
+
+            // Save subtasks
+            const subtasks = li.querySelectorAll('.subtask');
+            subtasks.forEach(subtask => {
+                task.subtasks.push({
+                    text: subtask.firstChild.textContent,
+                    status: subtask.querySelector('.status').textContent
+                });
+            });
+
             tasks.push(task);
         });
     });
@@ -120,8 +171,50 @@ function saveTasks() {
 function loadTasks() {
     const tasks = JSON.parse(localStorage.getItem('tasks'));
     if (tasks) {
-        tasks.forEach(task => addTask(task));
+        tasks.forEach(task => {
+            const taskLi = addTask(task);
+            // Load subtasks
+            if (task.subtasks && task.subtasks.length > 0) {
+                task.subtasks.forEach(subtask => {
+                    addSubtaskToTask(taskLi, subtask);
+                });
+            }
+        });
     }
+}
+
+function addSubtaskToTask(taskElement, subtask) {
+    const subtaskLi = document.createElement('li');
+    subtaskLi.style.marginLeft = '20px';
+    subtaskLi.className = 'subtask';
+
+    const subtaskName = document.createElement('span');
+    subtaskName.textContent = subtask.text;
+
+    const subtaskStatusSpan = document.createElement('span');
+    subtaskStatusSpan.textContent = subtask.status;
+    subtaskStatusSpan.className = 'status';
+
+    const subtaskStatusBtn = document.createElement('button');
+    subtaskStatusBtn.textContent = 'Update Status';
+    subtaskStatusBtn.className = 'status-btn';
+    subtaskStatusBtn.onclick = function() {
+        updateStatus(subtaskStatusSpan);
+    };
+
+    const deleteSubtaskBtn = document.createElement('button');
+    deleteSubtaskBtn.textContent = 'Delete Subtask';
+    deleteSubtaskBtn.className = 'delete-btn';
+    deleteSubtaskBtn.onclick = function() {
+        this.parentElement.remove();
+    };
+
+    subtaskLi.appendChild(subtaskName);
+    subtaskLi.appendChild(subtaskStatusSpan);
+    subtaskLi.appendChild(subtaskStatusBtn);
+    subtaskLi.appendChild(deleteSubtaskBtn);
+
+    taskElement.appendChild(subtaskLi);
 }
 
 function resetTasks() {
