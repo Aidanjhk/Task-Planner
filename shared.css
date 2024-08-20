@@ -106,3 +106,21 @@ button {
     display: inline-block;
     margin-left: 10px;
 }
+
+#undoButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #ffcc00;
+    color: #333;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+#undoButton:hover {
+    background-color: #ff9900;
+}

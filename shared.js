@@ -163,36 +163,44 @@ function autoSaveSubtask(taskId, subtaskId, field, value) {
     }
 }
 
-
 function deleteSubtask(taskId, subtaskId) {
     const tasks = loadTasksFromLocalStorage();
     const task = tasks.find(t => t.id === taskId);
 
-    task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);  // Filter out the subtask to delete
-    saveTasksToLocalStorage(tasks);
-    loadAndDisplayTasks();  // Refresh the task list to remove the deleted subtask
+    // Find the subtask to delete
+    const subtaskIndex = task.subtasks.findIndex(st => st.id === subtaskId);
+
+    if (subtaskIndex !== -1) {
+        lastDeletedTask = {
+            parentTaskId: taskId,
+            subtask: task.subtasks[subtaskIndex]
+        };  // Store the last deleted subtask
+        task.subtasks.splice(subtaskIndex, 1);  // Remove the subtask from the array
+        saveTasksToLocalStorage(tasks);
+        loadAndDisplayTasks();  // Refresh the task list to reflect deletion
+        showUndoButton();  // Show the undo button
+    } else {
+        console.error(`Subtask with ID ${subtaskId} not found.`);
+    }
 }
 
 function deleteTask(taskId) {
     let tasks = loadTasksFromLocalStorage();
-    
-    // Log the tasks and the ID to be deleted for debugging
-    console.log('Tasks before deletion:', tasks);
-    console.log('Attempting to delete task with ID:', taskId);
 
-    // Find the index of the task to delete
+    // Find the task to delete
     const taskIndex = tasks.findIndex(t => t.id === taskId);
 
     if (taskIndex !== -1) {
+        lastDeletedTask = tasks[taskIndex];  // Store the last deleted task
         tasks.splice(taskIndex, 1);  // Remove the task from the array
-        saveTasksToLocalStorage(tasks);  // Save the updated tasks array to localStorage
-        console.log('Tasks after deletion:', tasks);
-        loadAndDisplayTasks();  // Reload the task list after deletion
-        taskCreationInProgress = false;  // Allow new tasks to be created after deletion
+        saveTasksToLocalStorage(tasks);
+        loadAndDisplayTasks();  // Refresh the task list to reflect deletion
+        showUndoButton();  // Show the undo button
     } else {
         console.error(`Task with ID ${taskId} not found.`);
     }
 }
+
 
 function createTask() {
     if (taskCreationInProgress) {
@@ -240,6 +248,32 @@ function loadAndDisplayTasks() {
     });
 }
 
+function showUndoButton() {
+    const undoButton = document.getElementById('undoButton');
+    undoButton.style.display = 'block';  // Show the undo button
+    setTimeout(() => {
+        undoButton.style.display = 'none';  // Hide the undo button after 5 seconds
+    }, 5000);
+}
+
+function undoDelete() {
+    if (lastDeletedTask) {
+        let tasks = loadTasksFromLocalStorage();
+
+        if (lastDeletedTask.parentTaskId) {
+            // Restore a subtask
+            const parentTask = tasks.find(t => t.id === lastDeletedTask.parentTaskId);
+            parentTask.subtasks.push(lastDeletedTask.subtask);
+        } else {
+            // Restore a full task
+            tasks.push(lastDeletedTask);
+        }
+
+        saveTasksToLocalStorage(tasks);
+        loadAndDisplayTasks();  // Refresh the task list to show the restored task
+        lastDeletedTask = null;  // Clear the stored task
+    }
+}
 
 function addSubtask(taskId) {
     const subtaskText = prompt("Enter subtask:");
@@ -277,10 +311,23 @@ function deleteSubtask(taskId, subtaskId) {
     const tasks = loadTasksFromLocalStorage();
     const task = tasks.find(t => t.id === taskId);
 
-    task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
-    saveTasksToLocalStorage(tasks);
-    loadAndDisplayTasks();  // Refresh the task list to remove the deleted subtask
+    // Find the subtask to delete
+    const subtaskIndex = task.subtasks.findIndex(st => st.id === subtaskId);
+
+    if (subtaskIndex !== -1) {
+        lastDeletedTask = {
+            parentTaskId: taskId,
+            subtask: task.subtasks[subtaskIndex]
+        };  // Store the last deleted subtask
+        task.subtasks.splice(subtaskIndex, 1);  // Remove the subtask from the array
+        saveTasksToLocalStorage(tasks);
+        loadAndDisplayTasks();  // Refresh the task list to reflect deletion
+        showUndoButton();  // Show the undo button
+    } else {
+        console.error(`Subtask with ID ${subtaskId} not found.`);
+    }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', loadAndDisplayTasks);
