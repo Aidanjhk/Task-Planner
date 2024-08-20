@@ -34,36 +34,33 @@ h1 {
     margin-bottom: 20px;
 }
 
-.task-list {
-    flex-grow: 1;
-    overflow-y: auto;
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
+.task-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.task-container {
-    margin-bottom: 20px;
-}
-
-.task-item {
+.task-table th, .task-table td {
     padding: 10px;
-    background: #f9f9f9;
     border: 1px solid #ddd;
-    list-style: none;
+    text-align: left;
 }
 
-.subtask-list {
-    margin-left: 20px;
-    padding-left: 20px;
-    border-left: 2px solid #ddd;
+.task-table td[contenteditable="true"] {
+    background-color: #f9f9f9;
 }
 
-.subtask-item {
+.task-table input[type="date"],
+.task-table input[type="time"],
+.task-table input[type="number"],
+.task-table select {
+    width: 100%;
     padding: 5px;
-    background: #eef;
-    border: 1px solid #ccc;
-    list-style: none;
-    margin-bottom: 5px;
+    border: 1px solid #ddd;
+}
+
+.task-form {
+    margin-bottom: 20px;
 }
 
 button {
@@ -73,4 +70,29 @@ button {
     cursor: pointer;
     padding: 5px 10px;
     margin-right: 5px;
+    margin-top: 5px;
+}
+
+.subtask-container {
+    margin-left: 20px;
+    background-color: #f7f7f7;
+}
+
+.subtask-row {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.subtask-cell {
+    padding-left: 30px;
+}
+
+.subtask-cell div {
+    display: inline-block;
+    width: 80%;
+}
+
+.subtask-cell button {
+    display: inline-block;
+    margin-left: 10px;
 }

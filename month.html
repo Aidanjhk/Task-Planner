@@ -10,12 +10,31 @@
     <nav>
         <a href="day.html">Day</a> | 
         <a href="week.html">Week</a> | 
-        <a href="month.html">Month</a> | 
-        <a href="add-task.html">Add Task</a>
+        <a href="month.html">Month</a>
     </nav>
     <div class="container">
         <h1>Month Planner</h1>
-        <ul id="taskList" class="task-list"></ul>
+        <button id="addTaskBtn" onclick="createTask()">Add Task</button>
+        
+        <!-- Task List as a Table -->
+        <table id="taskTable" class="task-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Start Date</th>
+                    <th>Due Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Estimated Time (hrs)</th>
+                    <th>Status</th>
+                    <th>Repeat</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="taskList">
+                <!-- Task rows will be populated here -->
+            </tbody>
+        </table>
     </div>
     <script src="shared.js"></script>
     <script src="month.js"></script>

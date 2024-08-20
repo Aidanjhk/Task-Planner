@@ -1,3 +1,6 @@
+let taskCreationInProgress = false;
+let lastTaskCreationTime = 0;
+
 function saveTasksToLocalStorage(tasks) {
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
@@ -8,123 +11,178 @@ function loadTasksFromLocalStorage() {
 }
 
 function displayTask(task, view) {
-    const taskContainer = document.createElement('div');
-    taskContainer.classList.add('task-container');
+    const row = document.createElement('tr');
+    
+    row.innerHTML = `
+        <td contenteditable="true" onblur="autoSaveTask(${task.id}, 'text', this.textContent)">${task.text}</td>
+        <td><input type="date" value="${task.startDate}" onchange="autoSaveTask(${task.id}, 'startDate', this.value)"></td>
+        <td><input type="date" value="${task.dueDate}" onchange="autoSaveTask(${task.id}, 'dueDate', this.value)"></td>
+        <td><input type="time" value="${task.startTime}" onchange="autoSaveTask(${task.id}, 'startTime', this.value)"></td>
+        <td><input type="time" value="${task.endTime}" onchange="autoSaveTask(${task.id}, 'endTime', this.value)"></td>
+        <td><input type="number" value="${task.estimatedTime}" onchange="autoSaveTask(${task.id}, 'estimatedTime', this.value)"></td>
+		<td>
+            <select onchange="autoSaveTask(${task.id}, 'status', this.value)">
+                <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                <option value="Done" ${task.status === 'Done' ? 'selected' : ''}>Done</option>
+                <option value="Done & Checked" ${task.status === 'Done & Checked' ? 'selected' : ''}>Done & Checked</option>
+            </select>
+        </td>
+        <td>
+            <select onchange="autoSaveTask(${task.id}, 'repeat', this.value)">
+                <option value="daily" ${task.repeat === 'daily' ? 'selected' : ''}>Daily</option>
+                <option value="weekly" ${task.repeat === 'weekly' ? 'selected' : ''}>Weekly</option>
+                <option value="monthly" ${task.repeat === 'monthly' ? 'selected' : ''}>Monthly</option>
+            </select>
+        </td>
+        <td>
+           <button onclick="deleteTask('${task.id}')">Delete</button>
+        </td>
+    `;
 
-    const li = document.createElement('li');
-    li.classList.add('task-item');
-    li.textContent = `${task.text} (Start: ${task.startTime || 'Not Set'}, End: ${task.endTime || 'Not Set'})`;
+    view.appendChild(row);
 
-    const statusBtn = document.createElement('button');
-    statusBtn.textContent = 'Update Status';
-    statusBtn.onclick = function() {
-        updateTaskStatus(task.id);
-    };
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.onclick = function() {
-        deleteTask(task.id);
-        taskContainer.remove();
-    };
-
-    const subtaskBtn = document.createElement('button');
-    subtaskBtn.textContent = 'Add Subtask';
-    subtaskBtn.onclick = function() {
-        const subtaskText = prompt('Enter subtask:');
-        if (subtaskText) {
-            const subtask = {
-                id: Date.now(),
-                text: subtaskText,
-                status: 'Not Started'
-            };
-            addSubtask(task.id, subtask);
-            displaySubtask(subtask, taskContainer);
-        }
-    };
-
-    li.appendChild(statusBtn);
-    li.appendChild(deleteBtn);
-    li.appendChild(subtaskBtn);
-    taskContainer.appendChild(li);
-
-    // Display subtasks, if any
+    // Display subtasks
     if (task.subtasks && task.subtasks.length > 0) {
-        const subtaskList = document.createElement('ul');
-        subtaskList.classList.add('subtask-list');
+        const subtaskContainer = document.createElement('tr');
+        subtaskContainer.classList.add('subtask-container');
+        
         task.subtasks.forEach(subtask => {
-            displaySubtask(subtask, subtaskList);
+            const subtaskRow = document.createElement('tr');
+            subtaskRow.classList.add('subtask-row');
+            
+            subtaskRow.innerHTML = `
+                <td colspan="9" class="subtask-cell">
+                    <div contenteditable="true" onblur="autoSaveSubtask(${task.id}, ${subtask.id}, this.textContent)">${subtask.text}</div>
+                    <button onclick="deleteSubtask(${task.id}, ${subtask.id})">Delete Subtask</button>
+                </td>
+            `;
+            
+            subtaskContainer.appendChild(subtaskRow);
         });
-        taskContainer.appendChild(subtaskList);
+
+        view.appendChild(subtaskContainer);
     }
-
-    view.appendChild(taskContainer);
 }
 
-function displaySubtask(subtask, container) {
-    const subtaskLi = document.createElement('li');
-    subtaskLi.classList.add('subtask-item');
-    subtaskLi.textContent = `${subtask.text} (Status: ${subtask.status})`;
-
-    const statusBtn = document.createElement('button');
-    statusBtn.textContent = 'Update Subtask Status';
-    statusBtn.onclick = function() {
-        updateSubtaskStatus(subtask.id);
-    };
-
-    const deleteSubtaskBtn = document.createElement('button');
-    deleteSubtaskBtn.textContent = 'Delete Subtask';
-    deleteSubtaskBtn.onclick = function() {
-        deleteSubtask(subtask.id);
-        subtaskLi.remove();
-    };
-
-    subtaskLi.appendChild(statusBtn);
-    subtaskLi.appendChild(deleteSubtaskBtn);
-    container.appendChild(subtaskLi);
-}
-
-function updateTaskStatus(taskId) {
+function autoSaveTask(taskId, field, value) {
     const tasks = loadTasksFromLocalStorage();
     const task = tasks.find(t => t.id === taskId);
-    const statusOptions = ['Not Started', 'In Progress', 'Done', 'Done & Checked'];
-    const currentStatusIndex = statusOptions.indexOf(task.status);
-    task.status = statusOptions[(currentStatusIndex + 1) % statusOptions.length];
-    saveTasksToLocalStorage(tasks);
-    location.reload();  // Refresh to reflect the status change
+
+    if (task) {
+        task[field] = value;
+        saveTasksToLocalStorage(tasks);
+        if (field === 'text' && value !== 'New Task') {
+            taskCreationInProgress = false;  // Allow new tasks to be created after the current one is edited
+        }
+    }
 }
 
-function updateSubtaskStatus(subtaskId) {
+function addSubtask(taskId) {
+    const subtaskText = prompt("Enter subtask:");
+    if (!subtaskText) return;
+
     const tasks = loadTasksFromLocalStorage();
-    tasks.forEach(task => {
-        const subtask = task.subtasks.find(st => st.id === subtaskId);
-        if (subtask) {
-            const statusOptions = ['Not Started', 'In Progress', 'Done', 'Done & Checked'];
-            const currentStatusIndex = statusOptions.indexOf(subtask.status);
-            subtask.status = statusOptions[(currentStatusIndex + 1) % statusOptions.length];
-            saveTasksToLocalStorage(tasks);
-            location.reload();
-        }
-    });
+    const task = tasks.find(t => t.id === taskId);
+    
+    const subtask = {
+        id: Date.now(),
+        text: subtaskText
+    };
+
+    task.subtasks.push(subtask);
+    saveTasksToLocalStorage(tasks);
+    loadAndDisplayTasks();  // Refresh the task list
+}
+
+function autoSaveSubtask(taskId, subtaskId, value) {
+    const tasks = loadTasksFromLocalStorage();
+    const task = tasks.find(t => t.id === taskId);
+    const subtask = task.subtasks.find(st => st.id === subtaskId);
+
+    if (subtask) {
+        subtask.text = value;
+        saveTasksToLocalStorage(tasks);
+    }
+}
+
+function deleteSubtask(taskId, subtaskId) {
+    const tasks = loadTasksFromLocalStorage();
+    const task = tasks.find(t => t.id === taskId);
+
+    task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
+    saveTasksToLocalStorage(tasks);
+    loadAndDisplayTasks();  // Refresh the task list
 }
 
 function deleteTask(taskId) {
     let tasks = loadTasksFromLocalStorage();
-    tasks = tasks.filter(t => t.id !== taskId);
-    saveTasksToLocalStorage(tasks);
+    
+    // Log the tasks and the ID to be deleted for debugging
+    console.log('Tasks before deletion:', tasks);
+    console.log('Attempting to delete task with ID:', taskId);
+
+    // Find the index of the task to delete
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+
+    if (taskIndex !== -1) {
+        tasks.splice(taskIndex, 1);  // Remove the task from the array
+        saveTasksToLocalStorage(tasks);  // Save the updated tasks array to localStorage
+        console.log('Tasks after deletion:', tasks);
+        loadAndDisplayTasks();  // Reload the task list after deletion
+        taskCreationInProgress = false;  // Allow new tasks to be created after deletion
+    } else {
+        console.error(`Task with ID ${taskId} not found.`);
+    }
 }
 
-function addSubtask(taskId, subtask) {
+function createTask() {
+    const now = Date.now();
+
+    if (now - lastTaskCreationTime < 1000) {
+        return;  // Prevent creating multiple tasks within 1 second
+    }
+
+    lastTaskCreationTime = now;
+
+
+    taskCreationInProgress = true;
+
+    // Ensure the task ID is unique by combining Date.now() with a random value
+    const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+
+    const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
+    const task = {
+        id: uniqueId,
+        text: 'New Task',
+        startDate: today,
+        dueDate: today,
+        startTime: '',
+        endTime: '',
+        estimatedTime: '',
+        status: 'Not Started',
+        repeat: 'None',
+        subtasks: []
+    };
+
     const tasks = loadTasksFromLocalStorage();
-    const task = tasks.find(t => t.id === taskId);
-    task.subtasks.push(subtask);
+    tasks.push(task);
     saveTasksToLocalStorage(tasks);
+
+    taskCreationInProgress = true;  // Block new task creation until this one is edited or deleted
+
+    loadAndDisplayTasks();  // Refresh the task list to show the new task
 }
 
-function deleteSubtask(subtaskId) {
+function loadAndDisplayTasks() {
     const tasks = loadTasksFromLocalStorage();
+    const taskList = document.getElementById('taskList');
+
+    taskList.innerHTML = '';  // Clear existing tasks
+
     tasks.forEach(task => {
-        task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
+        displayTask(task, taskList);
     });
-    saveTasksToLocalStorage(tasks);
 }
+
+document.addEventListener('DOMContentLoaded', loadAndDisplayTasks);
